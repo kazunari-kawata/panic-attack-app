@@ -6,14 +6,13 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarView from "./components/CalendarView";
-import Menu from "./components/Menu";
 import RecordForm from "./components/RecordForm";
+import { hp, moderateScale, wp } from "./utils/responsive";
 
 // 保存するデータのキーを定義します。
 const STORAGE_KEY = "@panic_records";
@@ -51,7 +50,28 @@ export default function App() {
   // アプリが最初に読み込まれた時に一度だけ実行される処理
   useEffect(() => {
     loadRecords();
+    loadEditingRecord();
   }, []);
+
+  // 編集用レコードを読み込む
+  const loadEditingRecord = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("@editing_record");
+      if (jsonValue !== null) {
+        const record = JSON.parse(jsonValue);
+        setEditingRecord(record);
+        setSelectedDate(record.date);
+        setTime(record.time);
+        setLocation(record.location);
+        setFeeling(record.feeling);
+        setAction(record.action);
+        // 読み込んだら削除
+        await AsyncStorage.removeItem("@editing_record");
+      }
+    } catch (e) {
+      console.error("Failed to load editing record.", e);
+    }
+  };
 
   // AsyncStorageからデータを読み込む関数
   const loadRecords = async () => {
@@ -80,6 +100,34 @@ export default function App() {
       marked[record.date] = { marked: true, dotColor: "red" };
     });
     return marked;
+  };
+
+  // 日付選択時の処理
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date);
+
+    // 選択した日付の記録があるかチェック
+    const existingRecord = records.find((record) => record.date === date);
+    if (existingRecord) {
+      // 既存の記録がある場合は編集モードに
+      setEditingRecord(existingRecord);
+      setTime(existingRecord.time);
+      setLocation(existingRecord.location);
+      setFeeling(existingRecord.feeling);
+      setAction(existingRecord.action);
+    } else {
+      // 記録がない場合は新規作成モードに
+      setEditingRecord(null);
+      setLocation("");
+      setFeeling("");
+      setAction("");
+      setTime(
+        new Date().toLocaleTimeString("ja-JP", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    }
   };
 
   // 新しい記録を保存または更新する関数
@@ -112,7 +160,7 @@ export default function App() {
         // 新規作成の場合
         const newRecord = {
           id: Date.now().toString(), // ユニークなIDとして現在時刻のタイムスタンプを使用
-          date: new Date().toISOString().split("T")[0],
+          date: selectedDate, // 選択した日付を使用
           time,
           location,
           feeling,
@@ -122,19 +170,22 @@ export default function App() {
         setRecords(newRecords);
         const jsonValue = JSON.stringify(newRecords);
         await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
-        Alert.alert("成功", "記録を保存しました。");
+        Alert.alert("成功", `${selectedDate}の記録を保存しました。`);
       }
 
-      // 入力フォームをクリア
-      setLocation("");
-      setFeeling("");
-      setAction("");
-      setTime(
-        new Date().toLocaleTimeString("ja-JP", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      );
+      // 編集モードを解除し、フォームをクリア（新規作成時のみ）
+      setEditingRecord(null);
+      if (!editingRecord) {
+        setLocation("");
+        setFeeling("");
+        setAction("");
+        setTime(
+          new Date().toLocaleTimeString("ja-JP", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        );
+      }
 
       // 記録一覧ページに遷移
       router.push("/records");
@@ -145,20 +196,20 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+    <View style={[styles.container, styles.background]}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.keyboardAvoidingView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.contentContainer}>
           <Text style={styles.title}>
-            {editingRecord ? "発作の記録（編集）" : "発作の記録"}
+            {editingRecord ? "記録（編集）" : `${selectedDate}の記録`}
           </Text>
 
           <CalendarView
             selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
+            onDateSelect={handleDateSelect}
             markedDates={getMarkedDates()}
           />
           <RecordForm
@@ -174,34 +225,58 @@ export default function App() {
             onSave={saveRecord}
             onCancel={() => {
               setEditingRecord(null);
-              setLocation("");
-              setFeeling("");
-              setAction("");
-              setTime(
-                new Date().toLocaleTimeString("ja-JP", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
+              // 選択した日付の記録があるかチェックしてフォームをリセット
+              const existingRecord = records.find(
+                (record) => record.date === selectedDate
               );
+              if (existingRecord) {
+                setTime(existingRecord.time);
+                setLocation(existingRecord.location);
+                setFeeling(existingRecord.feeling);
+                setAction(existingRecord.action);
+              } else {
+                setLocation("");
+                setFeeling("");
+                setAction("");
+                setTime(
+                  new Date().toLocaleTimeString("ja-JP", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                );
+              }
             }}
           />
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
-      <Menu />
-    </SafeAreaView>
+    </View>
   );
 }
 
 // スタイル定義
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 30,
-    paddingTop: 50,
+    flex: 1,
+  },
+  background: {
+    backgroundColor: "#e6f3ff", // 薄い落ち着いた青
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: wp(8),
+    paddingTop: hp(1.5),
   },
   title: {
-    fontSize: 24,
+    fontSize: moderateScale(18),
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: hp(1.5),
     textAlign: "center",
+  },
+  formContainer: {
+    flex: 1,
+    justifyContent: "flex-start",
   },
 });

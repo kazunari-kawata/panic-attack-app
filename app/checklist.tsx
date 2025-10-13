@@ -1,18 +1,11 @@
 /* eslint-disable import/no-unresolved */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { CheckBox } from "react-native-elements";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Menu from "./components/Menu";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import AddItemForm from "./components/AddItemForm";
+import ButtonSection from "./components/ButtonSection";
+import ChecklistItem from "./components/ChecklistItem";
+import { hp, moderateScale, wp } from "./utils/responsive";
 
 const CHECKLIST_DATA_KEY = "@checklist_data";
 
@@ -37,6 +30,8 @@ export default function Checklist() {
     useState<ChecklistData>(defaultChecklistData);
   const [newItem, setNewItem] = useState("");
   const [showAddInput, setShowAddInput] = useState(false);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     loadChecklist();
@@ -94,64 +89,119 @@ export default function Checklist() {
     }));
   };
 
+  const startEdit = (item: string) => {
+    setEditingItem(item);
+    setEditText(item);
+  };
+
+  const saveEdit = () => {
+    if (editText.trim() && editText.trim() !== editingItem) {
+      if (
+        checklistData.items.includes(editText.trim()) &&
+        editText.trim() !== editingItem
+      ) {
+        Alert.alert("エラー", "同じ名前の項目が既に存在します。");
+        return;
+      }
+
+      setChecklistData((prev) => {
+        const newItems = prev.items.map((item) =>
+          item === editingItem ? editText.trim() : item
+        );
+        const newChecked = { ...prev.checked };
+        if (editingItem) {
+          newChecked[editText.trim()] = newChecked[editingItem];
+          delete newChecked[editingItem];
+        }
+
+        return {
+          items: newItems,
+          checked: newChecked,
+        };
+      });
+    }
+    setEditingItem(null);
+    setEditText("");
+  };
+
+  const cancelEdit = () => {
+    setEditingItem(null);
+    setEditText("");
+  };
+
+  const deleteItem = (itemToDelete: string) => {
+    Alert.alert("削除確認", `"${itemToDelete}" を削除しますか？`, [
+      { text: "キャンセル", style: "cancel" },
+      {
+        text: "削除",
+        style: "destructive",
+        onPress: () => {
+          setChecklistData((prev) => {
+            const newItems = prev.items.filter((item) => item !== itemToDelete);
+            const newChecked = { ...prev.checked };
+            delete newChecked[itemToDelete];
+
+            return {
+              items: newItems,
+              checked: newChecked,
+            };
+          });
+        },
+      },
+    ]);
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-      <ScrollView contentContainerStyle={styles.container}>
+    <View style={[styles.container, styles.background]}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>外出前チェックリスト</Text>
         {checklistData.items.map((item) => (
-          <CheckBox
+          <ChecklistItem
             key={item}
-            title={item}
+            item={item}
             checked={checklistData.checked[item] || false}
-            onPress={() => toggleCheck(item)}
+            editingItem={editingItem}
+            editText={editText}
+            onToggleCheck={toggleCheck}
+            onStartEdit={startEdit}
+            onSaveEdit={saveEdit}
+            onCancelEdit={cancelEdit}
+            onDeleteItem={deleteItem}
+            setEditText={setEditText}
           />
         ))}
-        <View style={styles.buttonContainer}>
-          <Button title="+" onPress={() => setShowAddInput(true)} />
-          <Button title="リセット" onPress={resetAllChecks} />
-        </View>
+        <ButtonSection
+          onShowAddInput={() => setShowAddInput(true)}
+          onResetAllChecks={resetAllChecks}
+        />
         {showAddInput && (
-          <View style={styles.addContainer}>
-            <TextInput
-              style={styles.input}
-              value={newItem}
-              onChangeText={setNewItem}
-              placeholder="新しい項目を入力"
-            />
-            <Button title="追加" onPress={addItem} />
-            <Button title="キャンセル" onPress={() => setShowAddInput(false)} />
-          </View>
+          <AddItemForm
+            newItem={newItem}
+            setNewItem={setNewItem}
+            onAddItem={addItem}
+            onCancel={() => setShowAddInput(false)}
+          />
         )}
       </ScrollView>
-
-      <Menu />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
+  },
+  background: {
+    backgroundColor: "#e6f3ff", // 薄い落ち着いた青
+  },
+  scrollContainer: {
+    padding: wp(5),
   },
   title: {
-    fontSize: 24,
+    fontSize: moderateScale(24),
     fontWeight: "bold",
-    marginBottom: 20,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 20,
-  },
-  addContainer: {
-    marginTop: 20,
-  },
-  input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    borderRadius: 5,
+    marginBottom: hp(2.5),
+    textAlign: "center",
+    color: "#333",
   },
 });
