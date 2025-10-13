@@ -40,7 +40,6 @@ export default function RecordList({
 
   return (
     <View style={styles.listContainer}>
-      <Text style={styles.title}>発作記録一覧</Text>
       <FlatList
         data={records}
         renderItem={renderItem}

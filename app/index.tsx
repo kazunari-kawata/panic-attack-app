@@ -1,13 +1,16 @@
 /* eslint-disable import/no-unresolved */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import CalendarView from "./components/CalendarView";
@@ -29,6 +32,7 @@ interface RecordItem {
 
 export default function App() {
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   // 状態（State）の定義
   // 記録のリストを管理するためのstate
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -46,6 +50,15 @@ export default function App() {
   const [feeling, setFeeling] = useState("");
   const [action, setAction] = useState("");
   const [editingRecord, setEditingRecord] = useState<RecordItem | null>(null);
+
+  // 入力欄へのスムーズスクロール関数
+  const scrollToInput = (scrollY: number) => {
+    console.log("scrollToInput called with:", scrollY);
+    scrollViewRef.current?.scrollTo({
+      y: scrollY,
+      animated: true,
+    });
+  };
 
   // アプリが最初に読み込まれた時に一度だけ実行される処理
   useEffect(() => {
@@ -202,52 +215,62 @@ export default function App() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
       >
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>
-            {editingRecord ? "記録（編集）" : `${selectedDate}の記録`}
-          </Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.contentContainer}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.title}>
+              {editingRecord ? "記録（編集）" : `${selectedDate}の記録`}
+            </Text>
 
-          <CalendarView
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-            markedDates={getMarkedDates()}
-          />
-          <RecordForm
-            editingRecord={editingRecord}
-            time={time}
-            setTime={setTime}
-            location={location}
-            setLocation={setLocation}
-            feeling={feeling}
-            setFeeling={setFeeling}
-            action={action}
-            setAction={setAction}
-            onSave={saveRecord}
-            onCancel={() => {
-              setEditingRecord(null);
-              // 選択した日付の記録があるかチェックしてフォームをリセット
-              const existingRecord = records.find(
-                (record) => record.date === selectedDate
-              );
-              if (existingRecord) {
-                setTime(existingRecord.time);
-                setLocation(existingRecord.location);
-                setFeeling(existingRecord.feeling);
-                setAction(existingRecord.action);
-              } else {
-                setLocation("");
-                setFeeling("");
-                setAction("");
-                setTime(
-                  new Date().toLocaleTimeString("ja-JP", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
+            <CalendarView
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              markedDates={getMarkedDates()}
+            />
+            <RecordForm
+              editingRecord={editingRecord}
+              time={time}
+              setTime={setTime}
+              location={location}
+              setLocation={setLocation}
+              feeling={feeling}
+              setFeeling={setFeeling}
+              action={action}
+              setAction={setAction}
+              onSave={saveRecord}
+              onCancel={() => {
+                setEditingRecord(null);
+                // 選択した日付の記録があるかチェックしてフォームをリセット
+                const existingRecord = records.find(
+                  (record) => record.date === selectedDate
                 );
-              }
-            }}
-          />
-        </View>
+                if (existingRecord) {
+                  setTime(existingRecord.time);
+                  setLocation(existingRecord.location);
+                  setFeeling(existingRecord.feeling);
+                  setAction(existingRecord.action);
+                } else {
+                  setLocation("");
+                  setFeeling("");
+                  setAction("");
+                  setTime(
+                    new Date().toLocaleTimeString("ja-JP", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  );
+                }
+              }}
+              scrollToInput={scrollToInput}
+              scrollViewRef={scrollViewRef}
+            />
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </View>
   );
@@ -266,8 +289,11 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: wp(8),
     paddingTop: hp(1.5),
+    paddingBottom: hp(2),
   },
   title: {
     fontSize: moderateScale(18),

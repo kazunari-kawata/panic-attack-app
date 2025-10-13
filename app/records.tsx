@@ -2,7 +2,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import { generateAndAddTestData } from "../faker";
 import RecordList from "./components/RecordList";
 import TabBar from "./components/TabBar";
 
@@ -23,7 +24,7 @@ export default function RecordsPage() {
   const router = useRouter();
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [activeTab, setActiveTab] = useState<
-    "week" | "month" | "3months" | "6months" | "year"
+    "week" | "month" | "3months" | "6months" | "year" | "all"
   >("month");
 
   // タブの定義
@@ -33,22 +34,11 @@ export default function RecordsPage() {
     { key: "3months", label: "3ヶ月" },
     { key: "6months", label: "6ヶ月" },
     { key: "year", label: "1年" },
+    { key: "all", label: "全期間" },
   ] as const;
 
-  // アプリが最初に読み込まれた時に一度だけ実行される処理
-  useEffect(() => {
-    loadRecords();
-  }, []);
-
-  // ページがフォーカスされたときにデータを再読み込み
-  useFocusEffect(
-    useCallback(() => {
-      loadRecords();
-    }, [])
-  );
-
   // AsyncStorageからデータを読み込む関数
-  const loadRecords = async () => {
+  const loadRecords = useCallback(async () => {
     try {
       const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
       if (jsonValue !== null) {
@@ -61,6 +51,32 @@ export default function RecordsPage() {
       }
     } catch (e) {
       console.error("Failed to load records.", e);
+    }
+  }, []);
+
+  // アプリが最初に読み込まれた時に一度だけ実行される処理
+  useEffect(() => {
+    loadRecords();
+  }, [loadRecords]);
+
+  // ページがフォーカスされたときにデータを再読み込み
+  useFocusEffect(
+    useCallback(() => {
+      loadRecords();
+    }, [loadRecords])
+  );
+
+  // テストデータを追加する関数
+  const addTestData = async () => {
+    try {
+      await generateAndAddTestData();
+      // データを再読み込み
+      await loadRecords();
+    } catch (e) {
+      console.error("テストデータの追加に失敗しました", e);
+      Alert.alert("エラー", "テストデータの投入に失敗しました。", [
+        { text: "OK" },
+      ]);
     }
   };
 
@@ -88,6 +104,8 @@ export default function RecordsPage() {
       case "year":
         startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
         break;
+      case "all":
+        return records; // 全期間の場合はフィルタリングしない
       default:
         return records;
     }
@@ -137,7 +155,30 @@ export default function RecordsPage() {
 
   return (
     <View style={[styles.container, styles.background]}>
-      <TabBar tabs={tabs} activeTab={activeTab} onTabPress={setActiveTab} />
+      {/* テストデータ投入ボタン（一時的） */}
+      <View style={styles.testButtonContainer}>
+        <Text
+          style={styles.testButton}
+          onPress={() => {
+            Alert.alert(
+              "テストデータ投入",
+              "現在のデータを上書きしてテストデータを投入しますか？",
+              [
+                { text: "キャンセル", style: "cancel" },
+                { text: "投入する", onPress: addTestData },
+              ]
+            );
+          }}
+        >
+          🧪 テストデータを投入する
+        </Text>
+      </View>
+
+      {/* ヘッダー：タイトルとタブバー */}
+      <View style={styles.header}>
+        <Text style={styles.title}>記録一覧</Text>
+        <TabBar tabs={tabs} activeTab={activeTab} onTabPress={setActiveTab} />
+      </View>
 
       {/* 記録リスト */}
       <RecordList
@@ -156,5 +197,34 @@ const styles = StyleSheet.create({
   },
   background: {
     backgroundColor: "#e6f3ff", // 薄い落ち着いた青
+  },
+  testButtonContainer: {
+    margin: 15,
+    padding: 12,
+    backgroundColor: "#fff3cd", // 薄い黄色の背景
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ffeaa7",
+  },
+  testButton: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#856404", // 濃い黄色
+    textAlign: "center",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
   },
 });
