@@ -1,5 +1,7 @@
+/* eslint-disable import/no-unresolved */
 import React from "react";
 import { Button, FlatList, StyleSheet, Text, View } from "react-native";
+import { hp, moderateScale, wp } from "../utils/responsive";
 
 interface RecordItem {
   id: string;
@@ -11,14 +13,12 @@ interface RecordItem {
 }
 
 interface RecordListProps {
-  selectedDate: string;
   records: RecordItem[];
   onEdit: (record: RecordItem) => void;
   onDelete: (id: string) => void;
 }
 
 export default function RecordList({
-  selectedDate,
   records,
   onEdit,
   onDelete,
@@ -32,27 +32,20 @@ export default function RecordList({
       <Text>感情: {item.feeling}</Text>
       <Text>対処: {item.action}</Text>
       <View style={styles.buttonContainer}>
-        <Button
-          title="編集"
-          onPress={() => onEdit(item)}
-        />
-        <Button
-          title="削除"
-          color="red"
-          onPress={() => onDelete(item.id)}
-        />
+        <Button title="編集" onPress={() => onEdit(item)} />
+        <Button title="削除" color="red" onPress={() => onDelete(item.id)} />
       </View>
     </View>
   );
 
   return (
     <View style={styles.listContainer}>
-      <Text style={styles.title}>選択した日: {selectedDate}</Text>
+      <Text style={styles.title}>発作記録一覧</Text>
       <FlatList
         data={records}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text>この日は記録がありません。</Text>}
+        ListEmptyComponent={<Text>記録がありません。</Text>}
       />
     </View>
   );
@@ -61,28 +54,30 @@ export default function RecordList({
 const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 5,
   },
   title: {
-    fontSize: 20,
+    fontSize: moderateScale(20),
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: hp(1.3),
   },
   recordItem: {
     backgroundColor: "#f9f9f9",
-    padding: 15,
-    borderRadius: 5,
-    marginBottom: 10,
+    padding: wp(3.75),
+    borderRadius: moderateScale(5),
+    marginBottom: hp(1.3),
     borderWidth: 1,
     borderColor: "#eeeeee",
   },
   recordDate: {
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: hp(0.6),
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
+    marginTop: hp(1.3),
   },
 });

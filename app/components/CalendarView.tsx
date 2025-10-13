@@ -2,6 +2,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Calendar } from "react-native-calendars";
+import { hp } from "../utils/responsive";
 
 interface CalendarViewProps {
   selectedDate: string;
@@ -26,6 +27,6 @@ export default function CalendarView({
 
 const styles = StyleSheet.create({
   calendarContainer: {
-    marginBottom: 20,
+    marginBottom: hp(2.5),
   },
 });

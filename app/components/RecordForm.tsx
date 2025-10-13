@@ -1,6 +1,13 @@
 /* eslint-disable import/no-unresolved */
 import React from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { hp, moderateScale, wp } from "../utils/responsive";
 
 interface RecordItem {
   id: string;
@@ -69,12 +76,20 @@ export default function RecordForm({
         onChangeText={setAction}
       />
       <View style={styles.buttonRow}>
-        <Button
-          title={editingRecord ? "この内容で更新する" : "この内容で保存する"}
-          onPress={onSave}
-        />
+        <TouchableOpacity style={styles.button} onPress={onSave}>
+          <Text style={styles.buttonText}>
+            {editingRecord ? "この内容で更新する" : "この内容で保存する"}
+          </Text>
+        </TouchableOpacity>
         {editingRecord && (
-          <Button title="キャンセル" color="gray" onPress={onCancel} />
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={onCancel}
+          >
+            <Text style={[styles.buttonText, styles.cancelButtonText]}>
+              キャンセル
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -83,24 +98,46 @@ export default function RecordForm({
 
 const styles = StyleSheet.create({
   formContainer: {
-    paddingBottom: 20,
+    paddingBottom: hp(2.5),
   },
   title: {
-    fontSize: 20,
+    fontSize: moderateScale(20),
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: hp(1.3),
   },
   input: {
-    height: 40,
+    height: hp(5),
     borderColor: "gray",
     borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    borderRadius: 5,
+    marginBottom: hp(1.3),
+    paddingHorizontal: wp(2.5),
+    borderRadius: moderateScale(5),
+    backgroundColor: "white",
   },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: 10,
+    marginTop: hp(1.3),
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: hp(1.3),
+    paddingHorizontal: wp(5),
+    borderRadius: moderateScale(5),
+    minWidth: wp(25),
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: moderateScale(16),
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "#f0f0f0",
+    borderWidth: 1,
+    borderColor: "#cccccc",
+  },
+  cancelButtonText: {
+    color: "#666666",
   },
 });
