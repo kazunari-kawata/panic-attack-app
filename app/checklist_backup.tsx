@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Keyboard, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import AddItemForm from "./components/AddItemForm";
 import ButtonSection from "./components/ButtonSection";
 import ChecklistItem from "./components/ChecklistItem";
@@ -32,42 +32,6 @@ export default function Checklist() {
   const [showAddInput, setShowAddInput] = useState(false);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  // 項目追加ボタンを押したときの処理
-  const handleShowAddInput = () => {
-    setShowAddInput(true);
-  };
-
-  // キーボードの表示/非表示を監視
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-        // キーボード表示時にAddItemFormが表示されている場合のみスクロール
-        if (showAddInput && scrollViewRef.current) {
-          setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-          }, 100);
-        }
-      }
-    );
-
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => {
-        setKeyboardHeight(0);
-      }
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, [showAddInput]);
 
   useEffect(() => {
     loadChecklist();
@@ -189,15 +153,7 @@ export default function Checklist() {
 
   return (
     <View style={[styles.container, styles.background]}>
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContainer,
-          { paddingBottom: keyboardHeight },
-        ]}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>外出前チェックリスト</Text>
         {checklistData.items.map((item) => (
           <ChecklistItem
@@ -215,7 +171,7 @@ export default function Checklist() {
           />
         ))}
         <ButtonSection
-          onShowAddInput={handleShowAddInput}
+          onShowAddInput={() => setShowAddInput(true)}
           onResetAllChecks={resetAllChecks}
         />
         {showAddInput && (
