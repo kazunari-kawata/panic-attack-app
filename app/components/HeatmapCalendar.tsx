@@ -1,6 +1,6 @@
 /* eslint-disable import/no-unresolved */
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { moderateScale } from "../utils/responsive";
 
 interface RecordItem {
@@ -18,19 +18,19 @@ interface HeatmapCalendarProps {
 
 export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
   const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
 
-  // 今月の日数を取得
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  // 選択された月の日数を取得
+  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-  // 今月の発作日をカウント
+  // 選択された月の発作日をカウント
   const attackDays = records
     .filter((record) => {
       const recordDate = new Date(record.date);
       return (
-        recordDate.getFullYear() === currentYear &&
-        recordDate.getMonth() === currentMonth
+        recordDate.getFullYear() === selectedYear &&
+        recordDate.getMonth() === selectedMonth
       );
     })
     .reduce((acc, record) => {
@@ -42,13 +42,53 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
   // 最大発作回数を取得（色の濃度計算用）
   const maxAttacks = Math.max(...Object.values(attackDays), 0);
 
+  // 月を変更する関数
+  const changeMonth = (direction: "prev" | "next") => {
+    setSelectedMonth((prev) => {
+      let newMonth = prev;
+      let newYear = selectedYear;
+
+      if (direction === "prev") {
+        newMonth = prev - 1;
+        if (newMonth < 0) {
+          newMonth = 11;
+          newYear = selectedYear - 1;
+        }
+      } else {
+        newMonth = prev + 1;
+        if (newMonth > 11) {
+          newMonth = 0;
+          newYear = selectedYear + 1;
+        }
+      }
+
+      setSelectedYear(newYear);
+      return newMonth;
+    });
+  };
+
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>ヒートマップカレンダー</Text>
       <View style={styles.calendarContainer}>
-        <Text style={styles.calendarTitle}>
-          {currentYear}年{currentMonth + 1}月の発作ヒートマップ
-        </Text>
+        {/* 月選択ボタン */}
+        <View style={styles.monthSelector}>
+          <TouchableOpacity
+            style={styles.monthButton}
+            onPress={() => changeMonth("prev")}
+          >
+            <Text style={styles.monthButtonText}>◀</Text>
+          </TouchableOpacity>
+          <Text style={styles.calendarTitle}>
+            {selectedYear}年{selectedMonth + 1}月の発作ヒートマップ
+          </Text>
+          <TouchableOpacity
+            style={styles.monthButton}
+            onPress={() => changeMonth("next")}
+          >
+            <Text style={styles.monthButtonText}>▶</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.calendarGrid}>
           {/* 曜日ヘッダー */}
           <View style={styles.weekdayHeader}>
@@ -64,7 +104,7 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
             {
               length: Math.ceil(
                 (daysInMonth +
-                  new Date(currentYear, currentMonth, 1).getDay()) /
+                  new Date(selectedYear, selectedMonth, 1).getDay()) /
                   7
               ),
             },
@@ -74,7 +114,7 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
                   const dayNumber =
                     weekIndex * 7 +
                     dayIndex -
-                    new Date(currentYear, currentMonth, 1).getDay() +
+                    new Date(selectedYear, selectedMonth, 1).getDay() +
                     1;
                   const isValidDay = dayNumber >= 1 && dayNumber <= daysInMonth;
                   const attacks = attackDays[dayNumber] || 0;
@@ -89,7 +129,7 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
                         isValidDay && {
                           backgroundColor:
                             attacks > 0
-                              ? `rgba(255, 59, 48, ${0.3 + intensity * 0.7})`
+                              ? `rgba(194, 166, 140, ${0.3 + intensity * 0.7})`
                               : "#f5f5f5",
                         },
                       ]}
@@ -112,32 +152,6 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
             )
           )}
         </View>
-
-        {/* 凡例 */}
-        <View style={styles.legendContainer}>
-          <Text style={styles.legendText}>少ない</Text>
-          <View style={styles.legendGradient}>
-            <View
-              style={[styles.legendColor, { backgroundColor: "#f5f5f5" }]}
-            />
-            <View
-              style={[
-                styles.legendColor,
-                { backgroundColor: "rgba(255, 59, 48, 0.5)" },
-              ]}
-            />
-            <View
-              style={[
-                styles.legendColor,
-                { backgroundColor: "rgba(255, 59, 48, 0.8)" },
-              ]}
-            />
-            <View
-              style={[styles.legendColor, { backgroundColor: "#ff3b30" }]}
-            />
-          </View>
-          <Text style={styles.legendText}>多い</Text>
-        </View>
       </View>
     </View>
   );
@@ -159,11 +173,27 @@ const styles = StyleSheet.create({
   calendarContainer: {
     marginTop: moderateScale(10),
   },
+  monthSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: moderateScale(10),
+  },
+  monthButton: {
+    paddingHorizontal: moderateScale(15),
+    paddingVertical: moderateScale(8),
+    borderRadius: moderateScale(5),
+    marginHorizontal: moderateScale(10),
+  },
+  monthButtonText: {
+    fontSize: moderateScale(16),
+    fontWeight: "bold",
+    color: "black",
+  },
   calendarTitle: {
     fontSize: moderateScale(16),
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: moderateScale(10),
     color: "#333",
   },
   calendarGrid: {
@@ -216,25 +246,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 2,
     right: 2,
-  },
-  legendContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: moderateScale(10),
-  },
-  legendText: {
-    fontSize: moderateScale(12),
-    color: "#666",
-    marginHorizontal: moderateScale(5),
-  },
-  legendGradient: {
-    flexDirection: "row",
-    height: moderateScale(12),
-    borderRadius: moderateScale(6),
-    overflow: "hidden",
-  },
-  legendColor: {
-    flex: 1,
   },
 });

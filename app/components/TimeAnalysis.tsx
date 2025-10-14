@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import React from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
@@ -99,10 +98,12 @@ export default function TimeAnalysisComponent({
 
       <Text style={styles.subTitle}>月次トレンド</Text>
       {(() => {
-        const allLabels = Object.keys(timeAnalysis.monthly);
-        const allData = validateChartData(Object.values(timeAnalysis.monthly));
-        const labels = allLabels.slice(-6);
-        const data = allData.slice(-6);
+        const sortedEntries = Object.entries(timeAnalysis.monthly).sort(
+          ([a], [b]) => a.localeCompare(b)
+        );
+        const last6Entries = sortedEntries.slice(-6);
+        const labels = last6Entries.map(([key]) => key);
+        const data = validateChartData(last6Entries.map(([, value]) => value));
         return labels.length > 0 &&
           data.length > 0 &&
           labels.length === data.length ? (
@@ -112,9 +113,10 @@ export default function TimeAnalysisComponent({
               datasets: [{ data }],
             }}
             width={chartWidth}
-            height={moderateScale(200)}
+            height={moderateScale(400)}
             chartConfig={chartConfig}
             style={styles.chart}
+            verticalLabelRotation={45}
           />
         ) : (
           <Text style={styles.noData}>データがありません</Text>

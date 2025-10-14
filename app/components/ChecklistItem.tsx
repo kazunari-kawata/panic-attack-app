@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   smallButtonText: {
     color: "white",
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(14),
     fontWeight: "bold",
   },
   editButtonText: {

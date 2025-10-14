@@ -1,4 +1,3 @@
-/* eslint-disable import/no-unresolved */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -146,11 +145,24 @@ export default function RecordsPage() {
 
   // 削除ハンドラー
   const handleDelete = async (id: string) => {
-    // 削除処理（RecordListから呼ばれる）
-    const newRecords = records.filter((record) => record.id !== id);
-    setRecords(newRecords);
-    const jsonValue = JSON.stringify(newRecords);
-    await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+    Alert.alert(
+      "記録の削除",
+      "この記録を削除してもよろしいですか？\nこの操作は取り消すことができません。",
+      [
+        { text: "キャンセル", style: "cancel" },
+        {
+          text: "削除する",
+          style: "destructive",
+          onPress: async () => {
+            // 削除処理（RecordListから呼ばれる）
+            const newRecords = records.filter((record) => record.id !== id);
+            setRecords(newRecords);
+            const jsonValue = JSON.stringify(newRecords);
+            await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+          },
+        },
+      ]
+    );
   };
 
   return (

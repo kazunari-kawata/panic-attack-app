@@ -213,7 +213,7 @@ export default function App() {
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? hp(9) : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
@@ -244,17 +244,9 @@ export default function App() {
               setAction={setAction}
               onSave={saveRecord}
               onCancel={() => {
-                setEditingRecord(null);
-                // 選択した日付の記録があるかチェックしてフォームをリセット
-                const existingRecord = records.find(
-                  (record) => record.date === selectedDate
-                );
-                if (existingRecord) {
-                  setTime(existingRecord.time);
-                  setLocation(existingRecord.location);
-                  setFeeling(existingRecord.feeling);
-                  setAction(existingRecord.action);
-                } else {
+                if (editingRecord) {
+                  // 編集モードの場合は記録一覧に遷移
+                  setEditingRecord(null);
                   setLocation("");
                   setFeeling("");
                   setAction("");
@@ -264,6 +256,30 @@ export default function App() {
                       minute: "2-digit",
                     })
                   );
+                  router.push("/records");
+                } else {
+                  // 新規作成の場合はフォームをリセット
+                  setEditingRecord(null);
+                  // 選択した日付の記録があるかチェックしてフォームをリセット
+                  const existingRecord = records.find(
+                    (record) => record.date === selectedDate
+                  );
+                  if (existingRecord) {
+                    setTime(existingRecord.time);
+                    setLocation(existingRecord.location);
+                    setFeeling(existingRecord.feeling);
+                    setAction(existingRecord.action);
+                  } else {
+                    setLocation("");
+                    setFeeling("");
+                    setAction("");
+                    setTime(
+                      new Date().toLocaleTimeString("ja-JP", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    );
+                  }
                 }
               }}
               scrollToInput={scrollToInput}

@@ -1,4 +1,5 @@
 /* eslint-disable import/no-unresolved */
+
 import React from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { BarChart } from "react-native-chart-kit";
@@ -18,19 +19,25 @@ export default function CorrelationAnalysis({
   feelingActionCorrelation,
 }: CorrelationAnalysisProps) {
   const getTopCorrelation = (correlation: CorrelationData) => {
-    const results: { [key: string]: string } = {};
+    const results: {
+      [key: string]: { item: string; count: number; total: number };
+    } = {};
     Object.keys(correlation).forEach((key) => {
       const subData = correlation[key];
+      const total = Object.values(subData).reduce(
+        (sum, val) => sum + (typeof val === "number" ? val : 0),
+        0
+      );
       if (Object.keys(subData).length > 0) {
         const validEntries = Object.entries(subData).filter(
           ([_, value]) =>
             typeof value === "number" && !isNaN(value) && isFinite(value)
         );
         if (validEntries.length > 0) {
-          const topItem = validEntries.reduce((a, b) =>
+          const [topItem, topCount] = validEntries.reduce((a, b) =>
             a[1] > b[1] ? a : b
-          )[0];
-          results[key] = topItem;
+          );
+          results[key] = { item: topItem, count: topCount, total };
         }
       }
     });
@@ -63,6 +70,7 @@ export default function CorrelationAnalysis({
       strokeWidth: "2",
       stroke: "#ffa726",
     },
+    barPercentage: 0.7,
   };
 
   const screenWidth = Dimensions.get("window").width;
@@ -76,27 +84,38 @@ export default function CorrelationAnalysis({
       <Text style={styles.subTitle}>場所別の主な症状</Text>
       {(() => {
         const correlationData = getTopCorrelation(locationFeelingCorrelation);
-        const labels = Object.keys(correlationData);
-        const data = validateChartData(labels.map(() => 1));
-        return labels.length > 0 && data.length > 0 ? (
+        const top5Entries = Object.entries(correlationData)
+          .sort(([, a], [, b]) => b.total - a.total)
+          .slice(0, 5);
+        const chartLabels = top5Entries.map(([key]) => key);
+        const chartData = validateChartData(
+          top5Entries.map(([, value]) => value.total)
+        );
+        return Object.keys(correlationData).length > 0 ? (
           <>
-            <BarChart
-              data={{
-                labels,
-                datasets: [{ data }],
-              }}
-              width={chartWidth}
-              height={moderateScale(200)}
-              yAxisLabel=""
-              yAxisSuffix=""
-              chartConfig={chartConfig}
-              style={styles.chart}
-              showValuesOnTopOfBars
-            />
-            {Object.entries(correlationData).map(([location, feeling]) => (
+            {chartLabels.length > 0 && chartData.length > 0 && (
+              <BarChart
+                data={{
+                  labels: chartLabels,
+                  datasets: [{ data: chartData }],
+                }}
+                width={chartWidth}
+                height={moderateScale(400)}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={chartConfig}
+                style={styles.chart}
+                showValuesOnTopOfBars
+                verticalLabelRotation={45}
+                fromZero={true}
+              />
+            )}
+            {Object.entries(correlationData).map(([location, data]) => (
               <View key={location} style={styles.reportItem}>
                 <Text style={styles.label}>{location}:</Text>
-                <Text style={styles.value}>{feeling}</Text>
+                <Text style={styles.value}>
+                  {data.item} ({data.count}回 / 総{data.total}回)
+                </Text>
               </View>
             ))}
           </>
@@ -108,27 +127,37 @@ export default function CorrelationAnalysis({
       <Text style={styles.subTitle}>症状別の主な対処法</Text>
       {(() => {
         const correlationData = getTopCorrelation(feelingActionCorrelation);
-        const labels = Object.keys(correlationData);
-        const data = validateChartData(labels.map(() => 1));
-        return labels.length > 0 && data.length > 0 ? (
+        const top5Entries = Object.entries(correlationData)
+          .sort(([, a], [, b]) => b.total - a.total)
+          .slice(0, 5);
+        const chartLabels = top5Entries.map(([key]) => key);
+        const chartData = validateChartData(
+          top5Entries.map(([, value]) => value.total)
+        );
+        return Object.keys(correlationData).length > 0 ? (
           <>
-            <BarChart
-              data={{
-                labels,
-                datasets: [{ data }],
-              }}
-              width={chartWidth}
-              height={moderateScale(200)}
-              yAxisLabel=""
-              yAxisSuffix=""
-              chartConfig={chartConfig}
-              style={styles.chart}
-              showValuesOnTopOfBars
-            />
-            {Object.entries(correlationData).map(([feeling, action]) => (
+            {chartLabels.length > 0 && chartData.length > 0 && (
+              <BarChart
+                data={{
+                  labels: chartLabels,
+                  datasets: [{ data: chartData }],
+                }}
+                width={chartWidth}
+                height={moderateScale(400)}
+                yAxisLabel=""
+                yAxisSuffix=""
+                chartConfig={chartConfig}
+                style={styles.chart}
+                showValuesOnTopOfBars
+                verticalLabelRotation={45}
+              />
+            )}
+            {Object.entries(correlationData).map(([feeling, data]) => (
               <View key={feeling} style={styles.reportItem}>
                 <Text style={styles.label}>{feeling}:</Text>
-                <Text style={styles.value}>{action}</Text>
+                <Text style={styles.value}>
+                  {data.item} ({data.count}回 / 総{data.total}回)
+                </Text>
               </View>
             ))}
           </>
@@ -169,12 +198,12 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(14),
     fontWeight: "600",
     color: "#555",
-    flex: 1,
+    flex: 0.3,
   },
   value: {
     fontSize: moderateScale(14),
     color: "#333",
-    flex: 1,
+    flex: 0.7,
     textAlign: "right",
   },
   noData: {
@@ -186,5 +215,6 @@ const styles = StyleSheet.create({
   chart: {
     marginVertical: moderateScale(10),
     borderRadius: moderateScale(8),
+    paddingRight: moderateScale(30),
   },
 });

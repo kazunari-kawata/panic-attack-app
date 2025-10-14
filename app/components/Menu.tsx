@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import { Ionicons } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -12,11 +12,7 @@ const Menu = () => {
         style={styles.menuItem}
         onPress={() => router.push("/checklist")}
       >
-        <Ionicons
-          name="checkmark-circle-outline"
-          size={moderateScale(24)}
-          color="#007bff"
-        />
+        <Feather name="check-circle" size={moderateScale(24)} color="#007bff" />
         <Text style={styles.menuText}>外出前</Text>
       </TouchableOpacity>
 
@@ -24,11 +20,7 @@ const Menu = () => {
         style={styles.menuItem}
         onPress={() => router.push("/")}
       >
-        <Ionicons
-          name="add-circle-outline"
-          size={moderateScale(24)}
-          color="#007bff"
-        />
+        <Feather name="plus-circle" size={moderateScale(24)} color="#007bff" />
         <Text style={styles.menuText}>記録作成</Text>
       </TouchableOpacity>
 
@@ -36,11 +28,7 @@ const Menu = () => {
         style={styles.menuItem}
         onPress={() => router.push("/records")}
       >
-        <Ionicons
-          name="list-outline"
-          size={moderateScale(24)}
-          color="#007bff"
-        />
+        <Feather name="list" size={moderateScale(24)} color="#007bff" />
         <Text style={styles.menuText}>記録一覧</Text>
       </TouchableOpacity>
 
@@ -48,24 +36,24 @@ const Menu = () => {
         style={styles.menuItem}
         onPress={() => router.push("/breathing")}
       >
-        <Ionicons
-          name="heart-outline"
-          size={moderateScale(24)}
-          color="#007bff"
-        />
-        <Text style={styles.menuText}>呼吸</Text>
+        <Feather name="wind" size={moderateScale(24)} color="#007bff" />
+        <Text style={styles.menuText}>深呼吸</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.menuItem}
         onPress={() => router.push("/analysis")}
       >
-        <Ionicons
-          name="bar-chart-outline"
-          size={moderateScale(24)}
-          color="#007bff"
-        />
+        <Feather name="bar-chart-2" size={moderateScale(24)} color="#007bff" />
         <Text style={styles.menuText}>分析</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.menuItem}
+        onPress={() => router.push("/favorites")}
+      >
+        <Feather name="heart" size={moderateScale(24)} color="#007bff" />
+        <Text style={styles.menuText}>お気に入り</Text>
       </TouchableOpacity>
     </View>
   );
