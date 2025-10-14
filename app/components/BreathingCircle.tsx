@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   guide: {
-    fontSize: moderateScale(14),
+    fontSize: moderateScale(10),
     color: "white",
     textAlign: "center",
     fontWeight: "bold",

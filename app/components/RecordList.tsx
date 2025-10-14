@@ -28,9 +28,9 @@ export default function RecordList({
       <Text style={styles.recordDate}>
         {item.date} {item.time}
       </Text>
-      <Text>場所: {item.location}</Text>
-      <Text>感情: {item.feeling}</Text>
-      <Text>対処: {item.action}</Text>
+      <Text style={styles.recordDetails}>場所: {item.location}</Text>
+      <Text style={styles.recordDetails}>感情: {item.feeling}</Text>
+      <Text style={styles.recordDetails}>対処: {item.action}</Text>
       <View style={styles.buttonContainer}>
         <Button title="編集" onPress={() => onEdit(item)} />
         <Button title="削除" color="red" onPress={() => onDelete(item.id)} />
@@ -40,7 +40,6 @@ export default function RecordList({
 
   return (
     <View style={styles.listContainer}>
-      <Text style={styles.title}>発作記録一覧</Text>
       <FlatList
         data={records}
         renderItem={renderItem}
@@ -72,12 +71,17 @@ const styles = StyleSheet.create({
     borderColor: "#eeeeee",
   },
   recordDate: {
+    fontSize: moderateScale(16),
     fontWeight: "bold",
+    marginBottom: hp(0.6),
+  },
+  recordDetails: {
+    fontSize: moderateScale(18),
     marginBottom: hp(0.6),
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     marginTop: hp(1.3),
   },
 });

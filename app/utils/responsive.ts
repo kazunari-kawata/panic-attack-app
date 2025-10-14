@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import { Dimensions } from "react-native";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");

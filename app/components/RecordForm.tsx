@@ -1,6 +1,8 @@
 /* eslint-disable import/no-unresolved */
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -30,6 +32,8 @@ interface RecordFormProps {
   setAction: (action: string) => void;
   onSave: () => void;
   onCancel: () => void;
+  scrollToInput: (scrollY: number) => void;
+  scrollViewRef: React.RefObject<ScrollView | null>;
 }
 
 export default function RecordForm({
@@ -44,7 +48,47 @@ export default function RecordForm({
   setAction,
   onSave,
   onCancel,
+  scrollToInput,
+  scrollViewRef,
 }: RecordFormProps) {
+  // 保存ボタンへのref
+  const saveButtonRef = useRef<View>(null);
+
+  // 現在フォーカスされている入力欄のインデックス
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
+  const handleScrollToFocusedInput = useCallback(() => {
+    // 保存ボタンの位置を相対値で計算
+    const titleHeight = hp(1.5); // タイトルのmarginBottom
+    const calendarHeight = hp(25); // カレンダーの推定高さ
+    const inputTotalHeight = hp(6.3) * 4; // 4つの入力欄（高さ5 + マージン1.3）
+    const buttonRowMargin = hp(1.3); // ボタン行のmarginTop
+    const estimatedButtonPosition =
+      titleHeight + calendarHeight + inputTotalHeight + buttonRowMargin;
+
+    console.log("Using estimated button position:", estimatedButtonPosition);
+    scrollToInput(estimatedButtonPosition);
+  }, [scrollToInput]);
+
+  // キーボード表示時の処理
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        if (focusedIndex !== null) {
+          handleScrollToFocusedInput();
+        }
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener?.remove();
+    };
+  }, [focusedIndex, handleScrollToFocusedInput]);
+
+  const handleFocus = (index: number) => {
+    setFocusedIndex(index);
+  };
   return (
     <View style={styles.formContainer}>
       <TextInput
@@ -53,30 +97,41 @@ export default function RecordForm({
         placeholderTextColor="gray"
         value={time}
         onChangeText={setTime}
+        onFocus={() => handleFocus(0)}
       />
+
       <TextInput
         style={styles.input}
         placeholder="どこで？（例: 電車の中）"
         placeholderTextColor="gray"
         value={location}
         onChangeText={setLocation}
+        onFocus={() => handleFocus(1)}
       />
+
       <TextInput
         style={styles.input}
         placeholder="どう感じたか？（例: 動悸がした）"
         placeholderTextColor="gray"
         value={feeling}
         onChangeText={setFeeling}
+        onFocus={() => handleFocus(2)}
       />
+
       <TextInput
         style={styles.input}
         placeholder="どう対処したか？（例: 深呼吸をした）"
         placeholderTextColor="gray"
         value={action}
         onChangeText={setAction}
+        onFocus={() => handleFocus(3)}
       />
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.button} onPress={onSave}>
+        <TouchableOpacity
+          ref={saveButtonRef}
+          style={styles.button}
+          onPress={onSave}
+        >
           <Text style={styles.buttonText}>
             {editingRecord ? "この内容で更新する" : "この内容で保存する"}
           </Text>
