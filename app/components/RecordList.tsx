@@ -53,9 +53,9 @@ export default function RecordList({
 const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 3,
     paddingHorizontal: 20,
-    paddingBottom: 5,
+    paddingBottom: 3,
   },
   title: {
     fontSize: moderateScale(20),
