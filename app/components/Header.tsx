@@ -6,7 +6,7 @@ import { hp, moderateScale, wp } from "../utils/responsive";
 export default function Header() {
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>「アプリ名」</Text>
+      <Text style={styles.title}>パニック発作管理</Text>
     </View>
   );
 }

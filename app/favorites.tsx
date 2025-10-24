@@ -80,8 +80,8 @@ export default function FavoritesScreen() {
             const screenHeight = Dimensions.get("window").height;
             scrollViewRef.current?.scrollTo({
               x: 0,
-              y: screenHeight * 0.35, // 画面の35%分スクロール
-              animated: true,
+              y: screenHeight * 0.35, // 画面の50%分スクロール
+              animated: false,
             });
           }, 100);
         }
