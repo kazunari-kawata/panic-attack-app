@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { hp, moderateScale, wp } from "../utils/responsive";
+import TimePicker from "./TimePicker";
 
 interface RecordItem {
   id: string;
@@ -91,14 +92,8 @@ export default function RecordForm({
   };
   return (
     <View style={styles.formContainer}>
-      <TextInput
-        style={styles.input}
-        placeholder="時間（例: 14:30）"
-        placeholderTextColor="gray"
-        value={time}
-        onChangeText={setTime}
-        onFocus={() => handleFocus(0)}
-      />
+      {/* 時間選択コンポーネント */}
+      <TimePicker time={time} onTimeChange={setTime} placeholder="時間を選択" />
 
       <TextInput
         style={styles.input}
