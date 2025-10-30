@@ -1,7 +1,9 @@
 /* eslint-disable import/no-unresolved */
 import React, { useState } from "react";
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -114,94 +116,106 @@ export default function SelectableInput({
         animationType="slide"
         onRequestClose={closeModal}
       >
-        <TouchableWithoutFeedback onPress={closeModal}>
-          <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback>
-              <View style={styles.optionsContainer}>
-                <Text style={styles.modalTitle}>選択してください</Text>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          <TouchableWithoutFeedback onPress={closeModal}>
+            <View style={styles.modalContainer}>
+              <TouchableWithoutFeedback>
+                <View style={styles.optionsContainer}>
+                  <Text style={styles.modalTitle}>選択してください</Text>
 
-                <ScrollView style={styles.optionsList}>
-                  {options.map((option, index) => {
-                    const isSelected = multiSelect
-                      ? Array.isArray(value) && value.includes(option)
-                      : value === option;
+                  <ScrollView
+                    style={styles.optionsList}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={true}
+                  >
+                    {options.map((option, index) => {
+                      const isSelected = multiSelect
+                        ? Array.isArray(value) && value.includes(option)
+                        : value === option;
 
-                    return (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.optionItem,
-                          isSelected && styles.selectedOption,
-                        ]}
-                        onPress={() => selectOption(option)}
-                      >
-                        <Text
+                      return (
+                        <TouchableOpacity
+                          key={index}
                           style={[
-                            styles.optionText,
-                            isSelected && styles.selectedOptionText,
+                            styles.optionItem,
+                            isSelected && styles.selectedOption,
                           ]}
+                          onPress={() => selectOption(option)}
                         >
-                          {multiSelect && isSelected ? "✓ " : ""}
-                          {option}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
+                          <Text
+                            style={[
+                              styles.optionText,
+                              isSelected && styles.selectedOptionText,
+                            ]}
+                          >
+                            {multiSelect && isSelected ? "✓ " : ""}
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+
+                    <TouchableOpacity
+                      style={styles.addOptionItem}
+                      onPress={showAddNewOption}
+                    >
+                      <Text style={styles.addOptionText}>+ 入力項目を追加</Text>
+                    </TouchableOpacity>
+                  </ScrollView>
+
+                  {showAddInput && (
+                    <View style={styles.addInputContainer}>
+                      <TextInput
+                        style={styles.addInput}
+                        placeholder="新しい項目を入力"
+                        placeholderTextColor="gray"
+                        value={newOption}
+                        onChangeText={setNewOption}
+                        autoFocus
+                        returnKeyType="done"
+                        onSubmitEditing={handleAddNewOption}
+                      />
+                      <View style={styles.addButtonRow}>
+                        <TouchableOpacity
+                          style={styles.addButton}
+                          onPress={handleAddNewOption}
+                        >
+                          <Text style={styles.addButtonText}>追加</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.addButton, styles.cancelButton]}
+                          onPress={() => setShowAddInput(false)}
+                        >
+                          <Text
+                            style={[
+                              styles.addButtonText,
+                              styles.cancelButtonText,
+                            ]}
+                          >
+                            キャンセル
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
 
                   <TouchableOpacity
-                    style={styles.addOptionItem}
-                    onPress={showAddNewOption}
+                    style={styles.closeButton}
+                    onPress={closeModal}
                   >
-                    <Text style={styles.addOptionText}>+ 入力項目を追加</Text>
+                    <Text style={styles.closeButtonText}>
+                      {multiSelect ? "完了" : "閉じる"}
+                    </Text>
                   </TouchableOpacity>
-                </ScrollView>
-
-                {showAddInput && (
-                  <View style={styles.addInputContainer}>
-                    <TextInput
-                      style={styles.addInput}
-                      placeholder="新しい項目を入力"
-                      placeholderTextColor="gray"
-                      value={newOption}
-                      onChangeText={setNewOption}
-                      autoFocus
-                    />
-                    <View style={styles.addButtonRow}>
-                      <TouchableOpacity
-                        style={styles.addButton}
-                        onPress={handleAddNewOption}
-                      >
-                        <Text style={styles.addButtonText}>追加</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.addButton, styles.cancelButton]}
-                        onPress={() => setShowAddInput(false)}
-                      >
-                        <Text
-                          style={[
-                            styles.addButtonText,
-                            styles.cancelButtonText,
-                          ]}
-                        >
-                          キャンセル
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={closeModal}
-                >
-                  <Text style={styles.closeButtonText}>
-                    {multiSelect ? "完了" : "閉じる"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );
@@ -225,6 +239,9 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: "gray",
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   modalContainer: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -236,7 +253,7 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(10),
     minWidth: wp(80),
     maxWidth: wp(90),
-    maxHeight: hp(70),
+    maxHeight: hp(50), // キーボード用スペースを確保するため少し小さく
     padding: wp(5),
   },
   modalTitle: {
@@ -247,7 +264,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   optionsList: {
-    maxHeight: hp(40),
+    maxHeight: hp(30), // キーボード対応のため高さを縮小
   },
   optionItem: {
     paddingVertical: hp(1.5),
@@ -284,6 +301,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
     paddingTop: hp(2),
+    paddingBottom: hp(1), // 下部にパディングを追加してキーボードとの間隔を確保
   },
   addInput: {
     height: hp(4),
