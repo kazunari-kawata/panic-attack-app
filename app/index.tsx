@@ -26,8 +26,8 @@ interface RecordItem {
   date: string;
   time: string;
   location: string;
-  feeling: string;
-  action: string;
+  feeling: string | string[];
+  action: string | string[];
 }
 
 export default function App() {
@@ -47,8 +47,8 @@ export default function App() {
     })
   );
   const [location, setLocation] = useState("");
-  const [feeling, setFeeling] = useState("");
-  const [action, setAction] = useState("");
+  const [feeling, setFeeling] = useState<string | string[]>("");
+  const [action, setAction] = useState<string | string[]>("");
   const [editingRecord, setEditingRecord] = useState<RecordItem | null>(null);
 
   // 入力欄へのスムーズスクロール関数
@@ -76,8 +76,8 @@ export default function App() {
         setSelectedDate(record.date);
         setTime(record.time);
         setLocation(record.location);
-        setFeeling(record.feeling);
-        setAction(record.action);
+        setFeeling(record.feeling || "");
+        setAction(record.action || "");
         // 読み込んだら削除
         await AsyncStorage.removeItem("@editing_record");
       }
@@ -94,9 +94,12 @@ export default function App() {
       if (jsonValue !== null) {
         const loadedRecords = JSON.parse(jsonValue);
         // 既存の記録にtimeがない場合、デフォルト値を追加
+        // feelingとactionが文字列の場合はそのまま、配列でない場合は互換性を保つ
         const updatedRecords = loadedRecords.map((record: any) => ({
           ...record,
           time: record.time || "",
+          feeling: record.feeling || "",
+          action: record.action || "",
         }));
         setRecords(updatedRecords);
       }
@@ -126,8 +129,8 @@ export default function App() {
       setEditingRecord(existingRecord);
       setTime(existingRecord.time);
       setLocation(existingRecord.location);
-      setFeeling(existingRecord.feeling);
-      setAction(existingRecord.action);
+      setFeeling(existingRecord.feeling || "");
+      setAction(existingRecord.action || "");
     } else {
       // 記録がない場合は新規作成モードに
       setEditingRecord(null);
@@ -146,7 +149,14 @@ export default function App() {
   // 新しい記録を保存または更新する関数
   const saveRecord = async () => {
     // 簡単な入力チェック
-    if (!location.trim() || !feeling.trim()) {
+    const locationValue = typeof location === "string" ? location : "";
+    const feelingValue = Array.isArray(feeling) ? feeling : [feeling];
+
+    if (
+      !locationValue.trim() ||
+      feelingValue.length === 0 ||
+      (feelingValue.length === 1 && !feelingValue[0].trim())
+    ) {
       Alert.alert("入力エラー", "「どこで」と「どう感じたか」は必須項目です。");
       return;
     }
@@ -267,8 +277,8 @@ export default function App() {
                   if (existingRecord) {
                     setTime(existingRecord.time);
                     setLocation(existingRecord.location);
-                    setFeeling(existingRecord.feeling);
-                    setAction(existingRecord.action);
+                    setFeeling(existingRecord.feeling || "");
+                    setAction(existingRecord.action || "");
                   } else {
                     setLocation("");
                     setFeeling("");

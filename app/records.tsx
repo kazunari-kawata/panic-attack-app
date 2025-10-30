@@ -15,8 +15,8 @@ interface RecordItem {
   date: string;
   time: string;
   location: string;
-  feeling: string;
-  action: string;
+  feeling: string | string[];
+  action: string | string[];
 }
 
 export default function RecordsPage() {
@@ -25,6 +25,19 @@ export default function RecordsPage() {
   const [activeTab, setActiveTab] = useState<
     "week" | "month" | "3months" | "6months" | "year" | "all"
   >("month");
+
+  // 表示用にデータを変換するヘルパー関数
+  const convertRecordsForDisplay = (records: RecordItem[]) => {
+    return records.map((record) => ({
+      ...record,
+      feeling: Array.isArray(record.feeling)
+        ? record.feeling.join("、")
+        : record.feeling,
+      action: Array.isArray(record.action)
+        ? record.action.join("、")
+        : record.action,
+    }));
+  };
 
   // タブの定義
   const tabs = [
@@ -194,7 +207,7 @@ export default function RecordsPage() {
 
       {/* 記録リスト */}
       <RecordList
-        records={getFilteredRecords()}
+        records={convertRecordsForDisplay(getFilteredRecords())}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

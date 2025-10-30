@@ -1,7 +1,14 @@
-/* eslint-disable import/no-unresolved */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Keyboard, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Dimensions,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import AddItemForm from "./components/AddItemForm";
 import ButtonSection from "./components/ButtonSection";
 import ChecklistItem from "./components/ChecklistItem";
@@ -50,7 +57,12 @@ export default function Checklist() {
         // キーボード表示時にAddItemFormが表示されている場合のみスクロール
         if (showAddInput && scrollViewRef.current) {
           setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
+            const screenHeight = Dimensions.get("window").height;
+            scrollViewRef.current?.scrollTo({
+              x: 0,
+              y: screenHeight * 0.35, // 画面の35%分スクロール
+              animated: false,
+            });
           }, 100);
         }
       }

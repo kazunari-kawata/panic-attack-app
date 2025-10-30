@@ -83,8 +83,6 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: "row",
     backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
     borderRadius: moderateScale(6),
   },
   dropdownButton: {
