@@ -9,12 +9,12 @@ interface RecordItem {
   date: string;
   time: string;
   location: string;
-  feeling: string;
-  action: string;
+  feeling: string | string[];
+  action: string | string[];
 }
 
 interface PieChartsSectionProps {
-  records: RecordItem[];
+  records: any[]; // 展開されたレコードを受け取る
 }
 
 export default function PieChartsSection({ records }: PieChartsSectionProps) {

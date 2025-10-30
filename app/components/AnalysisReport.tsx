@@ -8,17 +8,9 @@ import HeatmapCalendar from "./HeatmapCalendar";
 import PieChartsSection from "./PieChartsSection";
 import TimeAnalysis from "./TimeAnalysis";
 
-interface RecordItem {
-  id: string;
-  date: string;
-  time: string;
-  location: string;
-  feeling: string;
-  action: string;
-}
-
 interface AnalysisReportProps {
-  records: RecordItem[];
+  records: any[]; // 展開されたレコードを受け取る
+  originalRecordCount: number; // 元のレコード数
 }
 
 interface CorrelationData {
@@ -31,7 +23,10 @@ interface TimeAnalysisData {
   monthly: { [key: string]: number };
 }
 
-export default function AnalysisReport({ records }: AnalysisReportProps) {
+export default function AnalysisReport({
+  records,
+  originalRecordCount,
+}: AnalysisReportProps) {
   const [analysis, setAnalysis] = useState({
     total: 0,
     topLocation: "---",
@@ -61,9 +56,6 @@ export default function AnalysisReport({ records }: AnalysisReportProps) {
       });
       return;
     }
-
-    // 総記録数の計算
-    const total = records.length;
 
     // 最も頻度の高い場所の計算
     const locationCount: { [key: string]: number } = {};
@@ -168,7 +160,7 @@ export default function AnalysisReport({ records }: AnalysisReportProps) {
     });
 
     setAnalysis({
-      total,
+      total: originalRecordCount, // 必ず元の記録数を使用
       topLocation,
       topAction,
       locationFeelingCorrelation: locationFeeling,
@@ -179,7 +171,7 @@ export default function AnalysisReport({ records }: AnalysisReportProps) {
         monthly,
       },
     });
-  }, [records]);
+  }, [records, originalRecordCount]);
 
   return (
     <ScrollView style={styles.container}>
@@ -210,9 +202,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
     padding: moderateScale(15),
-    marginHorizontal: moderateScale(10),
-    marginBottom: moderateScale(10),
-    borderRadius: moderateScale(10),
+    marginHorizontal: moderateScale(5),
+    marginVertical: moderateScale(5),
+    borderRadius: moderateScale(5),
     borderWidth: 1,
     borderColor: "#e0e0e0",
     shadowColor: "#000",

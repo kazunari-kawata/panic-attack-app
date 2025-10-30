@@ -68,6 +68,7 @@ export default function TimeAnalysisComponent({
             height={moderateScale(200)}
             chartConfig={chartConfig}
             style={styles.chart}
+            fromZero={true}
           />
         ) : (
           <Text style={styles.noData}>データがありません</Text>
@@ -90,6 +91,7 @@ export default function TimeAnalysisComponent({
             height={moderateScale(200)}
             chartConfig={chartConfig}
             style={styles.chart}
+            fromZero={true}
           />
         ) : (
           <Text style={styles.noData}>データがありません</Text>
@@ -117,6 +119,7 @@ export default function TimeAnalysisComponent({
             chartConfig={chartConfig}
             style={styles.chart}
             verticalLabelRotation={45}
+            fromZero={true}
           />
         ) : (
           <Text style={styles.noData}>データがありません</Text>

@@ -8,12 +8,12 @@ interface RecordItem {
   date: string;
   time: string;
   location: string;
-  feeling: string;
-  action: string;
+  feeling: string | string[];
+  action: string | string[];
 }
 
 interface HeatmapCalendarProps {
-  records: RecordItem[];
+  records: any[]; // 展開されたレコードを受け取る
 }
 
 export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {

@@ -8,8 +8,8 @@ interface RecordItem {
   date: string;
   time: string;
   location: string;
-  feeling: string;
-  action: string;
+  feeling: string; // 表示用は文字列
+  action: string; // 表示用は文字列
 }
 
 interface RecordListProps {

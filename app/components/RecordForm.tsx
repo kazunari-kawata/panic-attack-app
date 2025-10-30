@@ -1,24 +1,75 @@
 /* eslint-disable import/no-unresolved */
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { hp, moderateScale, wp } from "../utils/responsive";
+import SelectableInput from "./SelectableInput";
 import TimePicker from "./TimePicker";
+
+// 事前定義されたオプション
+const LOCATION_OPTIONS = [
+  "自宅",
+  "職場",
+  "学校",
+  "駅",
+  "電車内",
+  "バス内",
+  "ショッピングモール",
+  "レストラン",
+  "カフェ",
+  "病院",
+  "美容院",
+  "映画館",
+  "公園",
+  "友人の家",
+];
+
+const FEELING_OPTIONS = [
+  "不安",
+  "恐怖",
+  "緊張",
+  "動悸",
+  "息苦しさ",
+  "めまい",
+  "吐き気",
+  "震え",
+  "汗をかく",
+  "胸の圧迫感",
+  "のどの詰まり",
+  "頭痛",
+  "疲労感",
+  "集中力の低下",
+];
+
+const ACTION_OPTIONS = [
+  "深呼吸",
+  "数を数える",
+  "音楽を聞く",
+  "誰かに電話する",
+  "水を飲む",
+  "散歩する",
+  "座る・横になる",
+  "薬を飲む",
+  "瞑想・マインドフルネス",
+  "日記を書く",
+  "安全な場所に移動",
+  "呼吸法の実践",
+  "リラックス音楽",
+  "温かい飲み物",
+];
 
 interface RecordItem {
   id: string;
   date: string;
   time: string;
   location: string;
-  feeling: string;
-  action: string;
+  feeling: string | string[];
+  action: string | string[];
 }
 
 interface RecordFormProps {
@@ -27,10 +78,10 @@ interface RecordFormProps {
   setTime: (time: string) => void;
   location: string;
   setLocation: (location: string) => void;
-  feeling: string;
-  setFeeling: (feeling: string) => void;
-  action: string;
-  setAction: (action: string) => void;
+  feeling: string | string[];
+  setFeeling: (feeling: string | string[]) => void;
+  action: string | string[];
+  setAction: (action: string | string[]) => void;
   onSave: () => void;
   onCancel: () => void;
   scrollToInput: (scrollY: number) => void;
@@ -55,71 +106,79 @@ export default function RecordForm({
   // 保存ボタンへのref
   const saveButtonRef = useRef<View>(null);
 
-  // 現在フォーカスされている入力欄のインデックス
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  // 動的オプション管理
+  const [locationOptions, setLocationOptions] = useState(LOCATION_OPTIONS);
+  const [feelingOptions, setFeelingOptions] = useState(FEELING_OPTIONS);
+  const [actionOptions, setActionOptions] = useState(ACTION_OPTIONS);
 
-  const handleScrollToFocusedInput = useCallback(() => {
-    // 保存ボタンの位置を相対値で計算
-    const titleHeight = hp(1.5); // タイトルのmarginBottom
-    const calendarHeight = hp(25); // カレンダーの推定高さ
-    const inputTotalHeight = hp(6.3) * 4; // 4つの入力欄（高さ5 + マージン1.3）
-    const buttonRowMargin = hp(1.3); // ボタン行のmarginTop
-    const estimatedButtonPosition =
-      titleHeight + calendarHeight + inputTotalHeight + buttonRowMargin;
-
-    console.log("Using estimated button position:", estimatedButtonPosition);
-    scrollToInput(estimatedButtonPosition);
-  }, [scrollToInput]);
-
-  // キーボード表示時の処理
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        if (focusedIndex !== null) {
-          handleScrollToFocusedInput();
-        }
-      }
-    );
-
-    return () => {
-      keyboardDidShowListener?.remove();
-    };
-  }, [focusedIndex, handleScrollToFocusedInput]);
-
-  const handleFocus = (index: number) => {
-    setFocusedIndex(index);
+  // 新しいオプションを追加する関数
+  const addLocationOption = (newOption: string) => {
+    if (!locationOptions.includes(newOption)) {
+      setLocationOptions([...locationOptions, newOption]);
+    }
   };
+
+  const addFeelingOption = (newOption: string) => {
+    if (!feelingOptions.includes(newOption)) {
+      setFeelingOptions([...feelingOptions, newOption]);
+    }
+  };
+
+  const addActionOption = (newOption: string) => {
+    if (!actionOptions.includes(newOption)) {
+      setActionOptions([...actionOptions, newOption]);
+    }
+  };
+
+  // 型安全な値変更関数
+  const handleLocationChange = (value: string | string[]) => {
+    if (typeof value === "string") {
+      setLocation(value);
+    }
+  };
+
+  const handleFeelingChange = (value: string | string[]) => {
+    setFeeling(value);
+  };
+
+  const handleActionChange = (value: string | string[]) => {
+    setAction(value);
+  };
+
+  // キーボード表示時の処理（選択式入力では不要）
+  useEffect(() => {
+    // キーボード関連の処理は選択式入力では不要なため削除
+  }, []);
+
   return (
     <View style={styles.formContainer}>
       {/* 時間選択コンポーネント */}
       <TimePicker time={time} onTimeChange={setTime} placeholder="時間を選択" />
 
-      <TextInput
-        style={styles.input}
+      <SelectableInput
         placeholder="どこで？（例: 電車の中）"
-        placeholderTextColor="gray"
         value={location}
-        onChangeText={setLocation}
-        onFocus={() => handleFocus(1)}
+        onValueChange={handleLocationChange}
+        options={locationOptions}
+        onAddOption={addLocationOption}
       />
 
-      <TextInput
-        style={styles.input}
+      <SelectableInput
         placeholder="どう感じたか？（例: 動悸がした）"
-        placeholderTextColor="gray"
         value={feeling}
-        onChangeText={setFeeling}
-        onFocus={() => handleFocus(2)}
+        onValueChange={handleFeelingChange}
+        options={feelingOptions}
+        onAddOption={addFeelingOption}
+        multiSelect={true}
       />
 
-      <TextInput
-        style={styles.input}
+      <SelectableInput
         placeholder="どう対処したか？（例: 深呼吸をした）"
-        placeholderTextColor="gray"
         value={action}
-        onChangeText={setAction}
-        onFocus={() => handleFocus(3)}
+        onValueChange={handleActionChange}
+        options={actionOptions}
+        onAddOption={addActionOption}
+        multiSelect={true}
       />
       <View style={styles.buttonRow}>
         <TouchableOpacity

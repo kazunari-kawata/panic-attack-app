@@ -1,24 +1,49 @@
-/* eslint-disable import/no-unresolved */
-import { Dimensions } from "react-native";
+import { Dimensions, PixelRatio } from "react-native";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// 画面幅に対するパーセンテージ
-export const wp = (percentage: number) => (percentage / 100) * screenWidth;
+// Base dimensions for responsive scaling
+const baseWidth = 375; // iPhone X width
+const baseHeight = 812; // iPhone X height
 
-// 画面高さに対するパーセンテージ
-export const hp = (percentage: number) => (percentage / 100) * screenHeight;
+/**
+ * Width percentage calculation based on screen width
+ * @param widthPercent percentage of screen width
+ * @returns calculated width value
+ */
+export const wp = (widthPercent: number): number => {
+  const elemWidth =
+    typeof widthPercent === "number" ? widthPercent : parseFloat(widthPercent);
+  return PixelRatio.roundToNearestPixel((SCREEN_WIDTH * elemWidth) / 100);
+};
 
-// フォントサイズのスケーリング (基準を375pxの幅として)
-const guidelineBaseWidth = 375;
-export const scale = (size: number) =>
-  (screenWidth / guidelineBaseWidth) * size;
+/**
+ * Height percentage calculation based on screen height
+ * @param heightPercent percentage of screen height
+ * @returns calculated height value
+ */
+export const hp = (heightPercent: number): number => {
+  const elemHeight =
+    typeof heightPercent === "number"
+      ? heightPercent
+      : parseFloat(heightPercent);
+  return PixelRatio.roundToNearestPixel((SCREEN_HEIGHT * elemHeight) / 100);
+};
 
-// 垂直方向のスケーリング
-const guidelineBaseHeight = 812;
-export const verticalScale = (size: number) =>
-  (screenHeight / guidelineBaseHeight) * size;
+/**
+ * Scale font size based on device screen size
+ * @param size font size to scale
+ * @returns scaled font size
+ */
+export const moderateScale = (size: number, factor: number = 0.5): number => {
+  const scale = SCREEN_WIDTH / baseWidth;
+  return Math.round(
+    PixelRatio.roundToNearestPixel(size + (scale - 1) * factor)
+  );
+};
 
-// 最小スケールと最大スケールを考慮したスケーリング
-export const moderateScale = (size: number, factor: number = 0.5) =>
-  size + (scale(size) - size) * factor;
+export default {
+  wp,
+  hp,
+  moderateScale,
+};

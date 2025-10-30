@@ -18,6 +18,10 @@ export default function CorrelationAnalysis({
   locationFeelingCorrelation,
   feelingActionCorrelation,
 }: CorrelationAnalysisProps) {
+  // デバッグ用のログを追加
+  console.log("locationFeelingCorrelation:", locationFeelingCorrelation);
+  console.log("feelingActionCorrelation:", feelingActionCorrelation);
+
   const getTopCorrelation = (correlation: CorrelationData) => {
     const results: {
       [key: string]: { item: string; count: number; total: number };
@@ -28,6 +32,9 @@ export default function CorrelationAnalysis({
         (sum, val) => sum + (typeof val === "number" ? val : 0),
         0
       );
+
+      console.log(`Location: ${key}, subData:`, subData, `total: ${total}`);
+
       if (Object.keys(subData).length > 0) {
         const validEntries = Object.entries(subData).filter(
           ([_, value]) =>
@@ -85,11 +92,11 @@ export default function CorrelationAnalysis({
       {(() => {
         const correlationData = getTopCorrelation(locationFeelingCorrelation);
         const top5Entries = Object.entries(correlationData)
-          .sort(([, a], [, b]) => b.total - a.total)
+          .sort(([, a], [, b]) => b.count - a.count) // 修正：totalではなくcountでソート
           .slice(0, 5);
         const chartLabels = top5Entries.map(([key]) => key);
         const chartData = validateChartData(
-          top5Entries.map(([, value]) => value.total)
+          top5Entries.map(([, value]) => value.count) // 修正：totalではなくcountを使用
         );
         return Object.keys(correlationData).length > 0 ? (
           <>
@@ -114,7 +121,7 @@ export default function CorrelationAnalysis({
               <View key={location} style={styles.reportItem}>
                 <Text style={styles.label}>{location}:</Text>
                 <Text style={styles.value}>
-                  {data.item} ({data.count}回 / 総{data.total}回)
+                  {data.item} ({data.count}回)
                 </Text>
               </View>
             ))}
@@ -128,11 +135,11 @@ export default function CorrelationAnalysis({
       {(() => {
         const correlationData = getTopCorrelation(feelingActionCorrelation);
         const top5Entries = Object.entries(correlationData)
-          .sort(([, a], [, b]) => b.total - a.total)
+          .sort(([, a], [, b]) => b.count - a.count) // 修正：totalではなくcountでソート
           .slice(0, 5);
         const chartLabels = top5Entries.map(([key]) => key);
         const chartData = validateChartData(
-          top5Entries.map(([, value]) => value.total)
+          top5Entries.map(([, value]) => value.count) // 修正：totalではなくcountを使用
         );
         return Object.keys(correlationData).length > 0 ? (
           <>
@@ -150,13 +157,14 @@ export default function CorrelationAnalysis({
                 style={styles.chart}
                 showValuesOnTopOfBars
                 verticalLabelRotation={45}
+                fromZero={true}
               />
             )}
             {Object.entries(correlationData).map(([feeling, data]) => (
               <View key={feeling} style={styles.reportItem}>
                 <Text style={styles.label}>{feeling}:</Text>
                 <Text style={styles.value}>
-                  {data.item} ({data.count}回 / 総{data.total}回)
+                  {data.item} ({data.count}回)
                 </Text>
               </View>
             ))}
