@@ -210,7 +210,6 @@ export default function Checklist() {
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>外出前チェックリスト</Text>
         {checklistData.items.map((item) => (
           <ChecklistItem
             key={item}

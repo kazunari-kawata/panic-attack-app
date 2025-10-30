@@ -118,31 +118,26 @@ export default function App() {
     return marked;
   };
 
-  // 日付選択時の処理
+  // 日付選択時の処理（常に新規作成モード）
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
 
-    // 選択した日付の記録があるかチェック
-    const existingRecord = records.find((record) => record.date === date);
-    if (existingRecord) {
-      // 既存の記録がある場合は編集モードに
-      setEditingRecord(existingRecord);
-      setTime(existingRecord.time);
-      setLocation(existingRecord.location);
-      setFeeling(existingRecord.feeling || "");
-      setAction(existingRecord.action || "");
-    } else {
-      // 記録がない場合は新規作成モードに
-      setEditingRecord(null);
-      setLocation("");
-      setFeeling("");
-      setAction("");
+    // 編集モードを解除して常に新規作成モードに
+    setEditingRecord(null);
+    setLocation("");
+    setFeeling("");
+    setAction("");
+
+    // 選択した日付が今日の場合は現在時刻を設定、それ以外は空に
+    if (date === new Date().toISOString().split("T")[0]) {
       setTime(
         new Date().toLocaleTimeString("ja-JP", {
           hour: "2-digit",
           minute: "2-digit",
         })
       );
+    } else {
+      setTime(""); // 過去の日付の場合は時間を空に
     }
   };
 
@@ -182,7 +177,7 @@ export default function App() {
       } else {
         // 新規作成の場合
         const newRecord = {
-          id: Date.now().toString(), // ユニークなIDとして現在時刻のタイムスタンプを使用
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // より確実なユニークID
           date: selectedDate, // 選択した日付を使用
           time,
           location,

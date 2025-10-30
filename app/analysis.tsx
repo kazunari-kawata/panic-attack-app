@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(4),
     paddingTop: hp(1),
     paddingBottom: hp(1),
-    backgroundColor: "e6f3ff",
     borderTopColor: "#e6f3ff",
     borderTopWidth: 1,
   },
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   periodInfo: {
-    fontSize: moderateScale(12),
+    fontSize: moderateScale(16),
     color: "#ffffff",
     textAlign: "center",
     marginTop: hp(0.5),
