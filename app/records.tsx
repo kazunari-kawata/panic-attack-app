@@ -201,7 +201,6 @@ export default function RecordsPage() {
 
       {/* ヘッダー：タイトルとタブバー */}
       <View style={styles.header}>
-        <Text style={styles.title}>記録一覧</Text>
         <TabBar tabs={tabs} activeTab={activeTab} onTabPress={setActiveTab} />
       </View>
 
@@ -234,18 +233,16 @@ const styles = StyleSheet.create({
   testButton: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#856404", // 濃い黄色
+    color: "#856404",
     textAlign: "center",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    backgroundColor: "#e6f3ff",
   },
   title: {
     fontSize: 18,

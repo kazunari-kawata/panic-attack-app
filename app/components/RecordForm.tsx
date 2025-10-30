@@ -56,10 +56,8 @@ const ACTION_OPTIONS = [
   "座る・横になる",
   "薬を飲む",
   "瞑想・マインドフルネス",
-  "日記を書く",
   "安全な場所に移動",
   "呼吸法の実践",
-  "リラックス音楽",
   "温かい飲み物",
 ];
 
@@ -130,6 +128,47 @@ export default function RecordForm({
     }
   };
 
+  // オプションを編集する関数
+  const editLocationOption = (oldOption: string, newOption: string) => {
+    const updatedOptions = locationOptions.map((option) =>
+      option === oldOption ? newOption : option
+    );
+    setLocationOptions(updatedOptions);
+  };
+
+  const editFeelingOption = (oldOption: string, newOption: string) => {
+    const updatedOptions = feelingOptions.map((option) =>
+      option === oldOption ? newOption : option
+    );
+    setFeelingOptions(updatedOptions);
+  };
+
+  const editActionOption = (oldOption: string, newOption: string) => {
+    const updatedOptions = actionOptions.map((option) =>
+      option === oldOption ? newOption : option
+    );
+    setActionOptions(updatedOptions);
+  };
+
+  // オプションを削除する関数
+  const deleteLocationOption = (optionToDelete: string) => {
+    setLocationOptions(
+      locationOptions.filter((option) => option !== optionToDelete)
+    );
+  };
+
+  const deleteFeelingOption = (optionToDelete: string) => {
+    setFeelingOptions(
+      feelingOptions.filter((option) => option !== optionToDelete)
+    );
+  };
+
+  const deleteActionOption = (optionToDelete: string) => {
+    setActionOptions(
+      actionOptions.filter((option) => option !== optionToDelete)
+    );
+  };
+
   // 型安全な値変更関数
   const handleLocationChange = (value: string | string[]) => {
     if (typeof value === "string") {
@@ -161,6 +200,8 @@ export default function RecordForm({
         onValueChange={handleLocationChange}
         options={locationOptions}
         onAddOption={addLocationOption}
+        onEditOption={editLocationOption}
+        onDeleteOption={deleteLocationOption}
       />
 
       <SelectableInput
@@ -169,6 +210,8 @@ export default function RecordForm({
         onValueChange={handleFeelingChange}
         options={feelingOptions}
         onAddOption={addFeelingOption}
+        onEditOption={editFeelingOption}
+        onDeleteOption={deleteFeelingOption}
         multiSelect={true}
       />
 
@@ -178,6 +221,8 @@ export default function RecordForm({
         onValueChange={handleActionChange}
         options={actionOptions}
         onAddOption={addActionOption}
+        onEditOption={editActionOption}
+        onDeleteOption={deleteActionOption}
         multiSelect={true}
       />
       <View style={styles.buttonRow}>
