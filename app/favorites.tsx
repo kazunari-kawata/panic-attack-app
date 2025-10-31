@@ -79,8 +79,6 @@ export default function FavoritesScreen() {
     }
   };
 
-
-
   const openLink = async (url: string) => {
     try {
       const appUrl = convertToAppUrl(url);
