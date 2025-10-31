@@ -1,19 +1,9 @@
-/* eslint-disable import/no-unresolved */
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { moderateScale } from "../utils/responsive";
 
-interface RecordItem {
-  id: string;
-  date: string;
-  time: string;
-  location: string;
-  feeling: string | string[];
-  action: string | string[];
-}
-
 interface HeatmapCalendarProps {
-  records: any[]; // 展開されたレコードを受け取る
+  records: any[]; // 展開されたレコードを受け取る（実際の発作回数をカウントするためにid/dateでグループ化）
 }
 
 export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
@@ -24,8 +14,8 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
   // 選択された月の日数を取得
   const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-  // 選択された月の発作日をカウント
-  const attackDays = records
+  // 展開されたレコードから実際の発作回数をカウント（id/dateでグループ化してユニークな発作をカウント）
+  const uniqueRecords = records
     .filter((record) => {
       const recordDate = new Date(record.date);
       return (
@@ -34,13 +24,26 @@ export default function HeatmapCalendar({ records }: HeatmapCalendarProps) {
       );
     })
     .reduce((acc, record) => {
-      const day = new Date(record.date).getDate();
-      acc[day] = (acc[day] || 0) + 1;
+      // id + date の組み合わせでユニークな発作記録を特定
+      const key = `${record.id}_${record.date}`;
+      if (!acc[key]) {
+        acc[key] = record;
+      }
       return acc;
-    }, {} as { [key: number]: number });
+    }, {} as { [key: string]: any });
+
+  // ユニークな発作記録から日別カウントを作成
+  const attackDays: { [key: number]: number } = Object.values(
+    uniqueRecords
+  ).reduce((acc: { [key: number]: number }, record: any) => {
+    const day = new Date(record.date).getDate();
+    acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {});
 
   // 最大発作回数を取得（色の濃度計算用）
-  const maxAttacks = Math.max(...Object.values(attackDays), 0);
+  const attackCounts = Object.values(attackDays);
+  const maxAttacks = attackCounts.length > 0 ? Math.max(...attackCounts) : 0;
 
   // 月を変更する関数
   const changeMonth = (direction: "prev" | "next") => {
